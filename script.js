@@ -1,87 +1,98 @@
 /**
- * Viktor. Portfolio Interactivity
+ * Eddi Flowin Portfolio — Interactivity
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // 1. Navbar Scroll Effect
+
+    // ─── 1. Navbar Scroll Effect ─────────────────────────────────────────────
     const navbar = document.getElementById('navbar');
-    
+
     const handleNavScroll = () => {
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
     };
 
-    window.addEventListener('scroll', handleNavScroll);
-    handleNavScroll(); // Initial check
+    window.addEventListener('scroll', handleNavScroll, { passive: true });
+    handleNavScroll();
 
-    // 2. Reveal on Scroll (Intersection Observer)
+    // ─── 2. Reveal on Scroll (Intersection Observer) ─────────────────────────
     const revealElements = document.querySelectorAll('.reveal-fade, .reveal-slide');
-    
-    const revealCallback = (entries, observer) => {
+
+    const revealObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('active');
-                // Optional: stop observing after reveal
-                // observer.unobserve(entry.target);
             }
         });
-    };
-
-    const revealObserver = new IntersectionObserver(revealCallback, {
-        threshold: 0.15,
-        rootMargin: '0px 0px -50px 0px'
+    }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px'
     });
 
     revealElements.forEach(el => revealObserver.observe(el));
 
-    // 3. Smooth Scroll for Navigation Links
+    // ─── 3. Smooth Scroll for Nav Links ──────────────────────────────────────
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             const targetId = this.getAttribute('href');
             if (targetId === '#') return;
-            
+
             e.preventDefault();
-            const targetElement = document.querySelector(targetId);
-            
-            if (targetElement) {
-                const navHeight = navbar.offsetHeight;
-                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navHeight;
-                
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
-            }
+            const targetEl = document.querySelector(targetId);
+            if (!targetEl) return;
+
+            const navHeight = navbar.offsetHeight;
+            const targetY = targetEl.getBoundingClientRect().top + window.pageYOffset - navHeight;
+
+            window.scrollTo({ top: targetY, behavior: 'smooth' });
         });
     });
 
-    // 4. Form Submission (Simulated)
-    const contactForm = document.querySelector('.contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const btn = contactForm.querySelector('button');
-            const originalText = btn.textContent;
-            
-            btn.textContent = 'Odesíláno...';
-            btn.disabled = true;
-            
-            // Simulate API call
-            setTimeout(() => {
-                btn.textContent = 'Zpráva odeslána!';
-                btn.style.backgroundColor = '#00ff00';
+    // ─── 4. Web3Forms Contact Form ────────────────────────────────────────────
+    const contactForm = document.getElementById('contact-form');
+    const submitBtn   = document.getElementById('submit-btn');
+    const formMessage = document.getElementById('form-message');
+
+    if (!contactForm) return;
+
+    contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Clear previous feedback
+        formMessage.className = 'form-message';
+        formMessage.textContent = '';
+
+        // Loading state
+        const originalText  = submitBtn.textContent;
+        submitBtn.textContent = 'Odesílám...';
+        submitBtn.disabled    = true;
+
+        try {
+            const formData = new FormData(contactForm);
+            const response = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                formMessage.textContent = 'Děkuji za poptávku! Ozvu se do 24 hodin.';
+                formMessage.classList.add('success');
                 contactForm.reset();
-                
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.backgroundColor = '';
-                    btn.disabled = false;
-                }, 3000);
-            }, 1500);
-        });
-    }
+            } else {
+                throw new Error(result.message || 'Odeslání selhalo.');
+            }
+        } catch (err) {
+            formMessage.textContent = 'Chyba při odesílání. Zkuste to prosím znovu nebo mě kontaktujte přímo.';
+            formMessage.classList.add('error');
+            console.error('Form submission error:', err);
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled    = false;
+
+            // Scroll feedback into view on mobile
+            formMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    });
+
 });

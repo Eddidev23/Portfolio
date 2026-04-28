@@ -165,21 +165,85 @@
                 <div class="section-label">05 / Kontakt</div>
                 <div class="contact-content">
                     <h2 class="section-title">Máte nápad? <br><span class="accent">Pojďme ho oživit.</span></h2>
-                    <form class="contact-form">
-                        <div class="form-group">
-                            <input type="text" placeholder="Jméno" required>
+                    <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="contact-form" novalidate>
+                        <!-- Web3Forms config -->
+                        <input type="hidden" name="access_key" value="2576e048-b9b9-412c-83ad-f215b0db9935">
+                        <input type="hidden" name="subject" value="Nová poptávka z portfolia">
+                        <!-- Honeypot anti-spam -->
+                        <input type="checkbox" name="botcheck" style="display:none">
+
+                        <!-- Row: Jméno + Email -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">Jméno *</label>
+                                <input type="text" id="name" name="name" placeholder="Jan Novák" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">E-mail *</label>
+                                <input type="email" id="email" name="email" placeholder="jan@firma.cz" required>
+                            </div>
                         </div>
+
+                        <!-- Firma -->
                         <div class="form-group">
-                            <input type="email" placeholder="Email" required>
+                            <label for="company">Firma / projekt</label>
+                            <input type="text" id="company" name="company" placeholder="Název firmy nebo projektu">
                         </div>
+
+                        <!-- Typ videa -->
                         <div class="form-group">
-                            <textarea placeholder="Vaše zpráva" rows="5" required></textarea>
+                            <label for="video-type">Typ videa</label>
+                            <select id="video-type" name="video_type">
+                                <option value="" disabled selected>Vyberte typ videa</option>
+                                <option value="Reels/TikTok">Reels / TikTok</option>
+                                <option value="Produktové video">Produktové video</option>
+                                <option value="Promo video">Promo video</option>
+                                <option value="AI video">AI video</option>
+                                <option value="Střih videa">Střih videa</option>
+                                <option value="Jiné">Jiné</option>
+                            </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Odeslat poptávku</button>
+
+                        <!-- Kde bude video použité -->
+                        <div class="form-group">
+                            <label for="usage">Kde bude video použité</label>
+                            <input type="text" id="usage" name="video_usage" placeholder="Instagram, web, interní prezentace...">
+                        </div>
+
+                        <!-- Termín + Rozpočet -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="deadline">Termín</label>
+                                <input type="date" id="deadline" name="deadline">
+                            </div>
+                            <div class="form-group">
+                                <label for="budget">Rozpočet</label>
+                                <select id="budget" name="budget">
+                                    <option value="" disabled selected>Vyberte rozpočet</option>
+                                    <option value="Do 5 000 Kč">Do 5 000 Kč</option>
+                                    <option value="5 000–15 000 Kč">5 000–15 000 Kč</option>
+                                    <option value="15 000–30 000 Kč">15 000–30 000 Kč</option>
+                                    <option value="30 000+ Kč">30 000+ Kč</option>
+                                    <option value="Není rozhodnuto">Není rozhodnuto</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Popis -->
+                        <div class="form-group">
+                            <label for="message">Popis zakázky</label>
+                            <textarea id="message" name="message" rows="5" placeholder="Popište váš projekt — co chcete natočit, jaký styl, reference..."></textarea>
+                        </div>
+
+                        <!-- Zpráva po odeslání -->
+                        <div id="form-message" class="form-message" aria-live="polite"></div>
+
+                        <button type="submit" id="submit-btn" class="btn btn-primary btn-full">Odeslat poptávku</button>
                     </form>
                 </div>
             </div>
         </section>
+
     </main>
 
     <footer class="footer">

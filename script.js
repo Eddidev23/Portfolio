@@ -14,7 +14,37 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', handleNavScroll, { passive: true });
     handleNavScroll();
 
-    // ─── 2. Reveal on Scroll (Intersection Observer) ─────────────────────────
+    // ─── 2. Hero Word Reveal Animation ─────────────────────────────
+    const heroH1 = document.querySelector('#hero h1');
+
+    if (heroH1) {
+        const rawHTML  = heroH1.innerHTML;
+        // Preserve <br> tags by splitting on whitespace only within text nodes
+        const parts    = rawHTML.split(/(<br>)/i);
+        let   wordIndex = 0;
+
+        const wrapped = parts.map(part => {
+            if (/^<br>$/i.test(part)) return part; // keep <br> as-is
+            return part
+                .split(' ')
+                .filter(w => w.length > 0)
+                .map(word => {
+                    const delay = (wordIndex * 0.08).toFixed(2);
+                    wordIndex++;
+                    return `<span class="word-wrapper"><span class="word" style="--delay:${delay}s">${word}</span></span>`;
+                })
+                .join(' ');
+        }).join('');
+
+        heroH1.innerHTML = wrapped;
+    }
+
+    // Trigger animate class after short delay
+    setTimeout(() => {
+        document.getElementById('hero')?.classList.add('animate');
+    }, 200);
+
+    // ─── 3. Reveal on Scroll (Intersection Observer) ─────────────────────────
     const revealElements = document.querySelectorAll('.reveal-fade, .reveal-slide');
 
     const revealObserver = new IntersectionObserver((entries) => {
@@ -30,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     revealElements.forEach(el => revealObserver.observe(el));
 
-    // ─── 3. Smooth Scroll for Nav Links ──────────────────────────────────────
+    // ─── 4. Smooth Scroll for Nav Links ──────────────────────────────────────
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             const targetId = this.getAttribute('href');
@@ -47,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ─── 4. Web3Forms Contact Form ────────────────────────────────────────────
+    // ─── 5. Web3Forms Contact Form ────────────────────────────────────────────
     const contactForm = document.getElementById('contact-form');
     const submitBtn   = document.getElementById('submit-btn');
     const formMessage = document.getElementById('form-message');

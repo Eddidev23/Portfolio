@@ -14,35 +14,60 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', handleNavScroll, { passive: true });
     handleNavScroll();
 
-    // ─── 2. Hero Word Reveal Animation ─────────────────────────────
-    const heroH1 = document.querySelector('#hero h1');
+    // ─── 2. Unified Hero Reveal — H1, Subtitle & CTA ────────────────────────
+    const hero     = document.getElementById('hero');
+    const heroH1   = hero?.querySelector('h1');
+    const subtitle = hero?.querySelector('.hero-subline');
+    const cta      = hero?.querySelector('.hero-cta') || hero?.querySelector('a[href="#contact"]');
 
-    if (heroH1) {
-        const rawHTML  = heroH1.innerHTML;
-        // Preserve <br> tags by splitting on whitespace only within text nodes
-        const parts    = rawHTML.split(/(<br>)/i);
-        let   wordIndex = 0;
+    if (heroH1 && subtitle && cta) {
+        
+        // Helper to wrap text into words with individual delays
+        const wrapWords = (el, baseDelayMs, stepDelayS, isSingleBlock = false) => {
+            if (isSingleBlock) {
+                const inner = el.innerHTML;
+                const delay = (baseDelayMs / 1000).toFixed(2);
+                el.innerHTML = `<span class="word-wrapper"><span class="word" style="--delay: ${delay}s">${inner}</span></span>`;
+                return 1; // 1 block
+            }
 
-        const wrapped = parts.map(part => {
-            if (/^<br>$/i.test(part)) return part; // keep <br> as-is
-            return part
-                .split(' ')
-                .filter(w => w.length > 0)
-                .map(word => {
-                    const delay = (wordIndex * 0.08).toFixed(2);
-                    wordIndex++;
-                    return `<span class="word-wrapper"><span class="word" style="--delay:${delay}s">${word}</span></span>`;
-                })
-                .join(' ');
-        }).join('');
+            const parts = el.innerHTML.split(/(<br\s*\/?>)/i);
+            let wordCount = 0;
 
-        heroH1.innerHTML = wrapped;
+            el.innerHTML = parts.map(part => {
+                if (/^<br/i.test(part)) return part;
+                return part
+                    .split(' ')
+                    .filter(w => w.length > 0)
+                    .map(word => {
+                        const delay = (baseDelayMs / 1000 + wordCount * stepDelayS).toFixed(2);
+                        wordCount++;
+                        return `<span class="word-wrapper"><span class="word" style="--delay: ${delay}s">${word}</span></span>`;
+                    })
+                    .join(' ');
+            }).join('');
+
+            return wordCount;
+        };
+
+        // 1. Wrap H1 (Starts at 0)
+        const h1Count = wrapWords(heroH1, 0, 0.08);
+
+        // 2. Wrap Subtitle (Starts after H1 ends)
+        // startDelay = 400 + (h1 words * 90) + 700
+        const subtitleStartDelay = 400 + (h1Count * 90) + 700;
+        const subCount = wrapWords(subtitle, subtitleStartDelay, 0.07);
+
+        // 3. Wrap CTA (Starts after Subtitle ends)
+        // Delay = subtitleStartDelay + (sub words * 70) + 500
+        const ctaDelay = subtitleStartDelay + (subCount * 70) + 500;
+        wrapWords(cta, ctaDelay, 0, true);
+
+        // Trigger animation
+        setTimeout(() => {
+            hero.classList.add('animate');
+        }, 300);
     }
-
-    // Trigger animate class after short delay
-    setTimeout(() => {
-        document.getElementById('hero')?.classList.add('animate');
-    }, 200);
 
     // ─── 3. Reveal on Scroll (Intersection Observer) ─────────────────────────
     const revealElements = document.querySelectorAll('.reveal-fade, .reveal-slide');
